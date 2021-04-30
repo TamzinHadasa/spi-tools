@@ -7,15 +7,21 @@ import urllib.parse
 import datetime
 import itertools
 import heapq
+import asyncio
+from asgiref.sync import sync_to_async
 
 import requests
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, resolve_url
 from django.urls import reverse
 from django.views import View
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
-
+from django.utils.decorators import classonlymethod
+from django.conf import settings
+from django.http import HttpResponse
 
 from wiki_interface import Wiki
 from wiki_interface.block_utils import BlockEvent, UnblockEvent, UserBlockHistory
@@ -265,9 +271,34 @@ class TimelineEvent:
     extra: str = ''
 
 
-class TimelineView(LoginRequiredMixin, View):
-    def get(self, request, case_name):
-        wiki = Wiki(request)
+class TestView(View):
+    @classonlymethod
+    def as_view(cls, **initkwargs):
+        view = super().as_view(**initkwargs)
+        view._is_coroutine = asyncio.coroutines._is_coroutine
+        return view
+
+
+    async def get(self, request):
+        if not await sync_to_async(lambda: request.user.is_authenticated)():
+            return redirect_to_login(self.request.get_full_path())
+        return HttpResponse('Foo')
+
+
+
+class TimelineView(View):
+    @classonlymethod
+    def as_view(cls, **initkwargs):
+        view = super().as_view(**initkwargs)
+        view._is_coroutine = asyncio.coroutines._is_coroutine
+        return view
+
+
+    async def get(self, request, case_name):
+        if not await sync_to_async(lambda: request.user.is_authenticated)():
+            return redirect_to_login(self.request.get_full_path())
+
+        wiki = await sync_to_async(Wiki)(request)
         user_names = request.GET.getlist('users')
         logger.debug("user_names = %s", user_names)
 
@@ -292,7 +323,7 @@ class TimelineView(LoginRequiredMixin, View):
                    'events': events,
                    'tag_list': tag_list,
                    'tag_table': tag_table,
-                   }
+        }
         return render(request, 'spi/timeline.jinja', context)
 
 

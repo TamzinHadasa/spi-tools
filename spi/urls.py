@@ -4,7 +4,8 @@ from spi.views import (IndexView,
                        SockSelectView,
                        TimecardView,
                        TimelineView,
-                       G5View)
+                       G5View,
+                       TestView)
 
 urlpatterns = [
     # pylint: disable=line-too-long
@@ -14,4 +15,5 @@ urlpatterns = [
     path('timecard/<case_name>', TimecardView.as_view(), name="spi-timecard"),
     path('timeline/<case_name>', TimelineView.as_view(), name="spi-timeline"),
     path('g5/<case_name>', G5View.as_view(), name="spi-g5"),
+    path('test', TestView.as_view(), name="test"),
 ]

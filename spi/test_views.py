@@ -27,7 +27,6 @@ class ViewTestCase(TestCase):
 class IndexViewTest(ViewTestCase):
     # pylint: disable=invalid-name
 
-
     @patch('spi.forms.Wiki')
     def test_unknown_button(self, mock_Wiki):
         mock_Wiki().page_exists.return_value = True
@@ -223,6 +222,26 @@ class UserSummaryTest(ViewTestCase):
         summary = UserSummary('foo/bar', '20 July 2020')
         self.assertEqual(summary.username, 'foo/bar')
         self.assertEqual(summary.urlencoded_username(), 'foo%2Fbar')
+
+
+class TestViewTest(ViewTestCase):
+    def test_get_with_anonymous_user(self):
+        client = Client()
+
+        response = client.get('/spi/test')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.endswith('/oauth/login/mediawiki?next=/spi/test'))
+
+
+    def test_get_with_authenticated_user(self):
+        client = Client()
+        user_u1 = get_user_model().objects.create_user('U1')
+        client.force_login(user_u1, backend='django.contrib.auth.backends.ModelBackend')
+
+        response = client.get('/spi/test')
+
+        self.assertEqual(response.status_code, 200)
 
 
 class TimelineViewTest(ViewTestCase):
