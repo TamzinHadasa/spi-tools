@@ -1,0 +1,16 @@
+{% extends "tools_app/base.html" %}
+
+{% block page_css %}
+{% endblock %}
+
+
+{% block content %}
+
+<h1><small>Plot</small></h1>
+
+{{figure.to_html(full_html=False)|safe}}
+
+{% endblock %}
+
+{% block page_scripts %}
+{% endblock %}

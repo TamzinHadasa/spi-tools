@@ -8,6 +8,7 @@ import datetime
 import itertools
 import heapq
 from pprint import pprint
+import plotly.express as px
 
 import requests
 
@@ -414,3 +415,15 @@ class G5View(View):
         if len(editors) == 1:
             return G5Score("likely", "only one editor")
         return G5Score("unknown")
+
+
+class PlotView(View):
+    def get(self, request, case_name):
+        case_name = request.GET.get('caseName')
+        figure = px.bar(x=[1, 2, 3, 4],
+                        y=[1, 3, 9, 16],
+                        )
+        context = {'case_name': case_name,
+                   'figure': figure,
+                   }
+        return render(request, 'spi/plot.html', context)
