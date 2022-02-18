@@ -186,9 +186,10 @@ class SpiCaseDay:
         date = self.date()
         templates = self.wikicode.filter_templates(
             matches=lambda n: n.name.matches(['sock list', 'socklist']))
-        for param in template.params:
-            if param.name.removeprefix('sock').removeprefix('ip').isdigit():
-                yield SpiUserInfo(str(param.value), str(date))
+        for template in templates:
+            for param in template.params:
+                if param.name.removeprefix('sock').removeprefix('ip').isdigit():
+                    yield SpiUserInfo(str(param.value), str(date))
 
 
     def find_users(self):
